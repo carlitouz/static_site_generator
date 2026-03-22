@@ -1,7 +1,7 @@
 import unittest
 
 from textnode import TextType, TextNode
-from inline_markdown import split_nodes_delimiter, split_nodes_link, split_nodes_image, extract_markdown_images, extract_markdown_links
+from inline_markdown import *
 
 class TestSplitDelimiter(unittest.TestCase):
     def test_split_nodes_delimiter_code(self):
@@ -167,3 +167,82 @@ class TestSplitDelimiter(unittest.TestCase):
             TextNode("boot.dev", TextType.LINK, "https://boot.dev")
         ]
         self.assertEqual(result, expected)
+
+    def test_text_to_textnodes_happy_path(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" and an ", TextType.TEXT),
+            TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev"),
+        ]
+        self.assertEqual(result, expected)
+
+    def test_text_to_textnodes_plain_text_only(self):
+        text = "This is only plain text"
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("This is only plain text", TextType.TEXT)
+        ]
+        self.assertEqual(result, expected)
+
+    def test_text_to_textnodes_single_type_bold(self):
+        text = "Only **bold** type"
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("Only ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" type", TextType.TEXT)
+        ]
+        self.assertEqual(result, expected)
+    
+    def test_text_to_textnodes_single_type_italic(self):
+        text = "Only _italic_ type"
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("Only ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" type", TextType.TEXT)
+        ]
+        self.assertEqual(result, expected)
+
+    def test_text_to_textnodes_single_type_code(self):
+        text = "Only `code` type"
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("Only ", TextType.TEXT),
+            TextNode("code", TextType.CODE),
+            TextNode(" type", TextType.TEXT)
+        ]
+        self.assertEqual(result, expected)
+    
+    def test_text_to_textnodes_adjacent_types(self):
+        text = "Testing **bold** _italic_"
+        result = text_to_textnodes(text)
+        expected = [
+            TextNode("Testing ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+        ]
+        self.assertEqual(result, expected)
+
+    def test_text_to_textnodes_empty_string(self):
+        text = ""
+        result = text_to_textnodes(text)
+        expected = []
+        self.assertEqual(result, expected)
+    
+    def test_text_to_textnodes_no_closing_delimiter(self):
+        text = "Text without a **closing delimiter"
+        with self.assertRaises(Exception):
+            text_to_textnodes(text)
+
+    
