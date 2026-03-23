@@ -1,15 +1,10 @@
-from textnode import TextNode, TextType
-import os
-import shutil
-
-def copy_static_to_public(source_path, destination_path):
-	if os.path.exists(destination_path):
-		print(f"Clearing destination path: {destination_path}")
-		shutil.rmtree(destination_path)
-
+from copystatic import copy_static
+from generate_page import generate_page_recursive
 
 
 def main():
+	copy_static("static", "public")
+	generate_page_recursive("content", "template.html", "public")
 
 if __name__ == "__main__":
 	main()
